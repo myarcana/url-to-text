@@ -1,0 +1,945 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Website Text Extractor - Convert Any Webpage to Text</title>
+    <meta name="description" content="Website Text Extractor allows you to extract and convert the text content from any HTML webpage into plaintext or Markdown instantly.">
+    <meta name="keywords" content="website text extractor, website to text, webpage to text, convert webpage, HTML to text, Markdown converter, HTML to markdown, plaintext">
+    <meta name="robots" content="index">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Computer Modern', 'Latin Modern Roman', 'Times New Roman', serif;
+            background: #fafafa;
+            min-height: 100vh;
+            padding: 40px 20px;
+            color: #000;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .card {
+            border-top: 1px solid #000;
+            border-bottom: 1px solid #000;
+            padding: 40px 0;
+            margin-bottom: 0;
+        }
+
+        h1 {
+            color: #000;
+            margin-bottom: 8px;
+            font-size: 24px;
+            font-weight: bold;
+            letter-spacing: 0.5px;
+        }
+
+        .subtitle {
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 13px;
+            font-style: italic;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 0;
+            margin-bottom: 20px;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 10px 12px;
+            border: 1px solid #000;
+            border-right: none;
+            font-size: 14px;
+            font-family: 'Courier New', monospace;
+            background: #fff;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            background: #f9f9f9;
+        }
+
+        button {
+            padding: 10px 24px;
+            background: #000;
+            color: #fff;
+            border: 1px solid #000;
+            font-size: 14px;
+            font-weight: normal;
+            cursor: pointer;
+            font-family: 'Computer Modern', 'Latin Modern Roman', 'Times New Roman', serif;
+            transition: background 0.2s, color 0.2s;
+        }
+
+        button:hover {
+            background: #fff;
+            color: #000;
+        }
+
+        button:active {
+            background: #e0e0e0;
+        }
+
+        button:disabled {
+            background: #999;
+            border-color: #999;
+            color: #fff;
+            cursor: not-allowed;
+        }
+
+        button:disabled:hover {
+            background: #999;
+            color: #fff;
+        }
+
+        .status {
+            padding: 12px 16px;
+            margin-bottom: 20px;
+            display: none;
+            font-size: 13px;
+            border: 1px solid;
+            font-family: 'Courier New', monospace;
+        }
+
+        .status.loading {
+            background: linear-gradient(90deg, #000 25%, #fff 50%, #000 75%);
+            background-size: 200% 100%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: gradientFlow 3s linear infinite;
+            border-color: #666;
+            display: block;
+        }
+
+        @keyframes gradientFlow {
+            0% {
+                background-position: 200% 0%;
+            }
+            100% {
+                background-position: -200% 0%;
+            }
+        }
+
+        .status.info {
+            background: #f5f5f5;
+            color: #000;
+            border-color: #666;
+            display: block;
+        }
+
+        .status.error {
+            background: #fff;
+            color: #000;
+            border-color: #000;
+            display: block;
+        }
+
+        .status.success {
+            background: #f5f5f5;
+            color: #000;
+            border-color: #000;
+            display: block;
+        }
+
+        .output-section {
+            display: none;
+            border-top: 1px solid #000;
+            border-bottom: 1px solid #000;
+            padding: 0;
+            margin-bottom: 0;
+            position: relative;
+        }
+
+        .output-section.visible {
+            display: block;
+        }
+
+        .button-group {
+            position: sticky;
+            top: 20px;
+            float: right;
+            margin: 40px 0 -40px 20px;
+            z-index: 10;
+            display: flex;
+            gap: 10px;
+        }
+
+        .toggle-group {
+            display: inline-flex;
+            border: 1px solid #000;
+        }
+
+        .toggle-group input[type="radio"] {
+            display: none;
+        }
+
+        .toggle-group label {
+            padding: 8px 16px;
+            font-size: 13px;
+            background: #fff;
+            color: #000;
+            cursor: pointer;
+            font-family: 'Computer Modern', 'Latin Modern Roman', 'Times New Roman', serif;
+            transition: background 0.2s, color 0.2s;
+            border-right: 1px solid #000;
+        }
+
+        .toggle-group label:last-child {
+            border-right: none;
+        }
+
+        .toggle-group input[type="radio"]:checked + label {
+            background: #000;
+            color: #fff;
+        }
+
+        .toggle-group label:hover {
+            background: #e0e0e0;
+        }
+
+        .toggle-group input[type="radio"]:checked + label:hover {
+            background: #000;
+            color: #fff;
+        }
+
+        .output-content {
+            width: 100%;
+            padding: 40px 0;
+            border: none;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.6;
+            display: block;
+            clear: both;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            user-select: text;
+            cursor: text;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border: 2px solid #fff;
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .proxy-info {
+            font-size: 11px;
+            color: #555;
+            margin-top: 10px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .proxy-info.hidden {
+            display: none;
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/turndown/7.1.2/turndown.min.js"></script>
+</head>
+<body>
+    <main>
+    <div class="container">
+        <div class="card">
+            <h1>Website Text Extractor</h1>
+            <p class="subtitle">Enter the URL of any webpage to convert it to text. After submitting a URL, you will be able to choose plain text or markdown.</p>
+
+            <div class="input-group">
+                <input
+                    type="text"
+                    id="urlInput"
+                    placeholder="https://example.com"
+                    value=""
+                    aria-label="Webpage URL"
+                />
+                <button id="convertBtn" onclick="convertUrl()">Convert</button>
+            </div>
+
+            <div id="status" class="status" aria-live="polite"></div>
+            <div class="proxy-info" id="proxyInfo"></div>
+        </div>
+
+        <section>
+        <div class="output-section" id="outputSection" aria-live="polite">
+            <div class="button-group">
+                <div class="toggle-group" role="radiogroup" aria-label="Output format toggle">
+                    <input type="radio" id="plaintext" name="outputType" value="plaintext" checked onchange="toggleOutputType()">
+                    <label for="plaintext">Plaintext</label>
+                    <input type="radio" id="markdown" name="outputType" value="markdown" onchange="toggleOutputType()">
+                    <label for="markdown">Markdown</label>
+                </div>
+            </div>
+            <pre class="output-content" id="output"></pre>
+        </div>
+        </section>
+    </div>
+    </main>
+
+    <script>
+        class Proxy {
+            /**
+             * Creates a new Proxy instance.
+             * @param {string} name - The name of the proxy instance.
+             * @param {string} proxyBaseUrl - The base URL for the proxy.
+             * @param {function(string): string} [formatTargetUrl] - Optional function to format the target URL before appending it to the proxyBaseUrl
+             * @param {Object} [overrides] - Custom formatFetchUrl or proxyFetch method implementations to use for this proxy
+             *
+             * @example
+             * // Basic usage (works for 99% of proxies):
+             * const myProxy = new Proxy('CORS Anywhere - Community-Hosted Instance', 'https://cors-anywhere.com/');
+             *
+             * // With custom URL formatting function (encodeURIComponent for AllOrigins)
+             * const customProxy = new Proxy('AllOrigins', 'https://api.allorigins.win/raw?charset=UTF-8&url=', encodeURIComponent);
+             *
+             * // Create a Proxy instance with a custom proxyFetch
+             * const headerProxy = new Proxy('DummyProxy', 'https://example.com/proxy?url=', url => url, {
+             *     async proxyFetch(targetUrl) {
+             *         const fetchUrl = this.formatFetchUrl(targetUrl);
+             *         const response = await fetch(fetchUrl, {
+             *             method: 'GET',
+             *             headers: {
+             *                 'Accept': 'text/html,application/xhtml+xml,application/xml'
+             *             }
+             *         });
+             *         if (!response.ok) {
+             *             throw new Error(`HTTP ${response.status} - ${response.statusText}`);
+             *         }
+             *         return await response.text();
+             *     }
+             * });
+             */
+            constructor(name, proxyBaseUrl, formatTargetUrl = url => url, overrides = {}) {
+                this.name = name;
+                this.proxyBaseUrl = proxyBaseUrl;
+                this.formatTargetUrl = formatTargetUrl;
+                Object.assign(this, overrides);
+            }
+
+            /**
+             * Formats a target URL for proxying.
+             * @param {string} targetUrl - The URL to be proxied.
+             * @returns {string} The formatted proxy URL that will be fetched.
+             */
+            formatFetchUrl(targetUrl) {
+                return this.proxyBaseUrl + this.formatTargetUrl(targetUrl);
+            }
+
+            /**
+             * Fetches a target URL through the proxy. Can also be overridden if needed.
+             * @param {string} targetUrl - The URL to fetch through the proxy.
+             * @returns {Promise<string>} The HTML content returned from the proxy.
+             * @throws {Error} If the fetch request fails with a non-OK status.
+             */
+            async proxyFetch(targetUrl) {
+                const fetchUrl = this.formatFetchUrl(targetUrl);
+                const response = await fetch(fetchUrl);
+                const html = await response.text();
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status} - ${response.statusText} - ${html.slice(0, 100)}`);
+                }
+                return html;
+            }
+        }
+
+        const corsProxies = [
+            new Proxy('CORS Anywhere - Community-Hosted Instance', 'https://cors-anywhere.com/', url => url, {
+                async proxyFetch(targetUrl) {
+                    const fetchUrl = this.formatFetchUrl(targetUrl);
+                    const response = await fetch(fetchUrl, {
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                        },
+                    });
+                    const html = await response.text();
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status} - ${response.statusText} - ${html.slice(0, 100)}`);
+                    }
+                    return html;
+                }
+            }),
+            new Proxy('CORS.LOL', 'https://api.cors.lol/?url=', encodeURIComponent),
+            new Proxy('AllOrigins', 'https://api.allorigins.win/raw?charset=UTF-8&url=', encodeURIComponent),
+            new Proxy('CodeTabs CORS Proxy', 'https://api.codetabs.com/v1/proxy?quest=', encodeURIComponent),
+            // want to add https://cors.sh/pricing
+            new Proxy('CorsProxy.io', 'https://corsproxy.io/?url='),
+            new Proxy('HTMLDriven CORS Proxy', 'https://cors-proxy.htmldriven.com/?url='),
+            // no https://cors-anywhere.herokuapp.com/ on purpose: https://github.com/Rob--W/cors-anywhere/issues/301
+        ];
+
+        let currentProxyIndex = 0;
+        let plaintextContent = '';
+        let markdownContent = '';
+
+        // Get URL from query string on page load
+        function getUrlFromQuery() {
+            const params = new URLSearchParams(window.location.search);
+            return params.get('url') || '';
+        }
+
+        // Initialize page on load
+        function initializePage() {
+            const urlFromQuery = getUrlFromQuery();
+            const urlInput = document.getElementById('urlInput');
+
+            if (urlFromQuery) {
+                urlInput.value = urlFromQuery;
+                // Automatically convert if URL is in query string
+                performConversion(urlFromQuery);
+            }
+        }
+
+        function toggleOutputType() {
+            const output = document.getElementById('output');
+            const selectedType = document.querySelector('input[name="outputType"]:checked').value;
+
+            if (selectedType === 'plaintext') {
+                output.textContent = plaintextContent;
+            } else {
+                output.textContent = markdownContent;
+            }
+        }
+
+        function showStatus(message, type = 'info') {
+            const statusEl = document.getElementById('status');
+            statusEl.textContent = message;
+            statusEl.className = `status ${type}`;
+        }
+
+        function showProxyInfo(proxyName, index) {
+            const proxyInfoEl = document.getElementById('proxyInfo');
+            proxyInfoEl.innerHTML = '';
+            proxyInfoEl.classList.remove('hidden');
+            const proxyNameEl = document.createElement('em');
+            proxyNameEl.textContent = proxyName;
+            proxyInfoEl.appendChild(proxyNameEl);
+            proxyInfoEl.insertBefore(document.createTextNode('Using proxy: '), proxyNameEl);
+            proxyInfoEl.appendChild(document.createTextNode(` (${index + 1}/${corsProxies.length})`));
+        }
+
+        async function fetchWithProxy(url, proxyIndex) {
+            if (proxyIndex >= corsProxies.length) {
+                throw new Error('All CORS proxies failed');
+            }
+
+            const proxy = corsProxies[proxyIndex];
+            showProxyInfo(proxy.name, proxyIndex);
+
+            try {
+                const html = await proxy.proxyFetch(url);
+                return html;
+            } catch (error) {
+                console.warn(`Proxy ${proxy.name} failed:`, error.message);
+                return fetchWithProxy(url, proxyIndex + 1);
+            }
+        }
+
+        function createPlaintextTurndown() {
+            const turndownService = new TurndownService({
+                headingStyle: 'atx',
+                hr: '---------',
+                bulletListMarker: '-',
+                codeBlockStyle: 'fenced'
+            });
+
+            // Override escape to never escape anything in plaintext
+            turndownService.escape = function(text) {
+                return text;
+            };
+
+            // Remove all default rules
+            turndownService.remove(['heading', 'emphasis', 'strong', 'code', 'link', 'image', 'list']);
+
+            // Custom rules that just return content for inline elements
+            turndownService.addRule('inlineElements', {
+                filter: ['strong', 'b', 'em', 'i', 'code', 'a', 's', 'del', 'strike', 'u', 'mark', 'sup', 'sub'],
+                replacement: function (content) {
+                    return content;
+                }
+            });
+
+            // Headers - just content with newlines
+            turndownService.addRule('headers', {
+                filter: ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'],
+                replacement: function (content) {
+                    return '\n' + content + '\n';
+                }
+            });
+
+            // Horizontal rule
+            turndownService.addRule('horizontalRule', {
+                filter: 'hr',
+                replacement: function () {
+                    return '\n---------\n';
+                }
+            });
+
+            // Unordered lists with - bullet points
+            turndownService.addRule('bulletList', {
+                filter: 'ul',
+                replacement: function (content, node, options) {
+                    return '\n' + content + '\n';
+                }
+            });
+
+            // List items for bullet lists
+            turndownService.addRule('listItem', {
+                filter: 'li',
+                replacement: function (content, node, options) {
+                    content = content.trim();
+                    const parent = node.parentNode;
+                    const isNumbered = parent.nodeName === 'OL';
+
+                    if (isNumbered) {
+                        const index = Array.prototype.indexOf.call(parent.children, node);
+                        return (index + 1) + '. ' + content + '\n';
+                    } else {
+                        return '- ' + content + '\n';
+                    }
+                }
+            });
+
+            // Ordered lists - output normally
+            turndownService.addRule('numberedList', {
+                filter: 'ol',
+                replacement: function (content) {
+                    return '\n' + content + '\n';
+                }
+            });
+
+            // Images - just return empty or alt text
+            turndownService.addRule('image', {
+                filter: 'img',
+                replacement: function (content, node) {
+                    const alt = node.getAttribute('alt') || '';
+                    return alt ? alt : '';
+                }
+            });
+
+            // Line breaks
+            turndownService.addRule('lineBreak', {
+                filter: 'br',
+                replacement: function () {
+                    return '\n';
+                }
+            });
+
+            return turndownService;
+        }
+
+        function createMarkdownTurndown() {
+            // Use default Turndown with standard markdown formatting
+            const turndownService = new TurndownService({
+                headingStyle: 'atx',
+                hr: '---',
+                bulletListMarker: '-',
+                codeBlockStyle: 'fenced',
+                emDelimiter: '*',
+                strongDelimiter: '**'
+            });
+
+            return turndownService;
+        }
+
+        // Main conversion function that updates URL and triggers conversion
+        function convertUrl() {
+            const urlInput = document.getElementById('urlInput');
+            const url = urlInput.value.trim();
+
+            if (!url) {
+                showStatus('Please enter a URL', 'error');
+                return;
+            }
+
+            // Basic URL validation
+            try {
+                new URL(url);
+            } catch (e) {
+                showStatus('Please enter a valid URL', 'error');
+                return;
+            }
+
+            // Update the browser URL with the new query string
+            const newUrl = `${window.location.pathname}?url=${encodeURIComponent(url)}`;
+            window.history.pushState({ url: url }, '', newUrl);
+
+            // Perform the conversion
+            performConversion(url);
+        }
+
+        // Actual conversion logic
+        async function performConversion(url) {
+            const convertBtn = document.getElementById('convertBtn');
+            const outputSection = document.getElementById('outputSection');
+            const output = document.getElementById('output');
+
+            convertBtn.disabled = true;
+            convertBtn.innerHTML = '<span class="spinner"></span>Converting...';
+            outputSection.classList.remove('visible');
+            showStatus('Fetching webpage...', 'loading');
+
+            try {
+                const html = await fetchWithProxy(url, 0);
+                showStatus('Converting...', 'info');
+
+                // Create a clean version of HTML for processing
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                doc.querySelectorAll('script, style, noscript').forEach(el => el.remove());
+                const cleanHtml = doc.body.innerHTML;
+
+                // Generate markdown using Turndown
+                const markdownTurndown = createMarkdownTurndown();
+                const markdown = markdownTurndown.turndown(cleanHtml);
+
+                // Generate plaintext using Turndown with custom rules
+                const plaintextTurndown = createPlaintextTurndown();
+                const plaintext = plaintextTurndown.turndown(cleanHtml);
+
+                // Store both versions
+                plaintextContent = plaintext;
+                markdownContent = markdown;
+
+                // Display plaintext by default
+                output.textContent = plaintextContent;
+
+                outputSection.classList.add('visible');
+                showStatus('✓ Conversion successful!', 'success');
+
+
+                // Hide proxy info after success
+                const proxyInfoEl = document.getElementById('proxyInfo');
+                proxyInfoEl.classList.add('hidden');
+
+                outputSection.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start',
+                });
+            } catch (error) {
+                showStatus(`Error: ${error.message}. All CORS proxies failed. The webpage may be blocking proxy access.`, 'error');
+                console.error('Conversion error:', error);
+            } finally {
+                convertBtn.disabled = false;
+                convertBtn.textContent = 'Convert';
+            }
+        }
+
+        // Handle browser back/forward navigation
+        window.addEventListener('popstate', function(event) {
+            const urlFromQuery = getUrlFromQuery();
+            const urlInput = document.getElementById('urlInput');
+
+            if (urlFromQuery) {
+                urlInput.value = urlFromQuery;
+                performConversion(urlFromQuery);
+            } else {
+                urlInput.value = '';
+                const outputSection = document.getElementById('outputSection');
+                outputSection.classList.remove('visible');
+                document.getElementById('status').style.display = 'none';
+            }
+        });
+
+        document.getElementById('urlInput').addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                convertUrl();
+            }
+        });
+
+        const urlInput = document.getElementById('urlInput');
+
+        urlInput.addEventListener('focus', function(event) {
+            function log(s) {
+                console.log(performance.now(), s);
+            }
+            // Prevent the next mouseup from clearing the selection
+            function handleMouseUp(e) {
+                log('up');
+                e.preventDefault();
+                e.stopPropagation();
+                e.preventDefault();
+                event.target.select();
+                urlInput.removeEventListener('mouseup', handleMouseUp);
+                urlInput.removeEventListener('mousedown', handleMouseDown);
+            }
+            function handleMouseDown(e) {
+                log('down');
+                urlInput.removeEventListener('mousedown', handleMouseDown);
+                urlInput.removeEventListener('mouseup', handleMouseUp);
+            }
+            log('focus');
+            urlInput.removeEventListener('mousedown', handleMouseDown);
+            urlInput.removeEventListener('mouseup', handleMouseUp);
+            if (!event.isTrusted) return;
+            event.preventDefault();
+            event.target.focus();
+            event.target.select();
+            log('add');
+            urlInput.addEventListener('mouseup', handleMouseUp, { once: true });
+            urlInput.addEventListener('mousedown', handleMouseDown, { once: true });
+        });
+
+        // Initialize the page on load
+        window.addEventListener('DOMContentLoaded', initializePage);
+
+        async function compareAndDiffWithDebugLogging(successful) {
+            console.log('\n🔍 Comparing HTML responses...');
+
+            // Load a browser-compatible diff library (diff-match-patch works in browsers)
+            if (typeof diff_match_patch === 'undefined') {
+                console.log('📦 Loading diff-match-patch library...');
+                await new Promise((resolve, reject) => {
+                    const script = document.createElement('script');
+                    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/diff_match_patch/20121119/diff_match_patch.js';
+                    script.onload = resolve;
+                    script.onerror = reject;
+                    document.head.appendChild(script);
+                });
+                console.log('✓ diff-match-patch library loaded');
+            }
+
+            const dmp = new diff_match_patch();
+
+            // Build comparison matrix: compare each proxy's HTML with every other proxy's HTML
+            const n = successful.length;
+            const comparisonMatrix = [];
+
+            console.log(`\n📊 Building comparison matrix (${n}x${n})...`);
+
+            for (let i = 0; i < n; i++) {
+                comparisonMatrix[i] = [];
+                for (let j = 0; j < n; j++) {
+                    if (i === j) {
+                        comparisonMatrix[i][j] = { equal: true };
+                    } else {
+                        const isEqual = successful[i].html === successful[j].html;
+                        comparisonMatrix[i][j] = { equal: isEqual };
+                    }
+                }
+            }
+
+            // Count how many proxies each proxy differs from
+            const diffCounts = successful.map((proxy, i) => {
+                const differencesCount = comparisonMatrix[i].filter(c => !c.equal).length;
+                return {
+                    index: i,
+                    name: proxy.name,
+                    differencesCount
+                };
+            });
+
+            // Check if all responses are identical
+            const allIdentical = diffCounts.every(d => d.differencesCount === 0);
+
+            if (allIdentical) {
+                console.log('✅ All proxies returned identical HTML content');
+                successful.forEach(proxy => {
+                    console.log(`   - ${proxy.name}`);
+                });
+                return;
+            }
+
+            console.log('\n⚠️  HTML differences detected!\n');
+
+            // Sort by difference count (descending) to find outliers
+            const sorted = [...diffCounts].sort((a, b) => b.differencesCount - a.differencesCount);
+
+            // Display summary
+            console.log('📈 Difference Summary:');
+            sorted.forEach(item => {
+                const status = item.differencesCount === 0 ? '✓' : '⚠️';
+                console.log(`   ${status} ${item.name}: differs from ${item.differencesCount} other proxy(ies)`);
+            });
+
+            // Identify outliers (proxies that differ from most others)
+            const maxDiff = sorted[0].differencesCount;
+            const outliers = sorted.filter(s => s.differencesCount === maxDiff);
+
+            // Identify the majority group (proxies that agree with each other)
+            const majorityGroup = sorted.filter(s => s.differencesCount < maxDiff);
+
+            // Helper function to format diff output like git diff
+            function formatDiff(html1, html2) {
+                const diffs = dmp.diff_main(html1, html2);
+                dmp.diff_cleanupSemantic(diffs);
+
+                let result = '';
+                for (const [op, text] of diffs) {
+                    const lines = text.split('\n');
+                    for (let i = 0; i < lines.length; i++) {
+                        const line = lines[i];
+                        if (i < lines.length - 1 || line) { // Don't print empty last line
+                            if (op === -1) { // Deletion
+                                result += `- ${line}\n`;
+                            } else if (op === 1) { // Addition
+                                result += `+ ${line}\n`;
+                            } else { // Equal
+                                result += `  ${line}\n`;
+                            }
+                        }
+                    }
+                }
+                return result;
+            }
+
+            console.log('\n' + '='.repeat(60));
+
+            if (outliers.length === 1) {
+                // Single outlier case
+                const outlier = outliers[0];
+                const comparison = majorityGroup[0];
+
+                console.log(`\n🎯 OUTLIER DETECTED: ${outlier.name}`);
+                console.log(`   This proxy differs from ${outlier.differencesCount} other proxy(ies)`);
+                console.log(`\n📄 Showing diff between outlier and majority group:`);
+                console.log(`   Comparing: ${comparison.name} vs ${outlier.name}\n`);
+
+                const diffOutput = formatDiff(
+                    successful[comparison.index].html,
+                    successful[outlier.index].html
+                );
+
+                console.log(diffOutput);
+
+            } else if (outliers.length > 1 && majorityGroup.length > 0) {
+                // Multiple outliers case
+                console.log(`\n🎯 MULTIPLE OUTLIERS DETECTED (${outliers.length} proxies)`);
+
+                for (const outlier of outliers) {
+                    console.log(`\n--- ${outlier.name} ---`);
+                    console.log(`   Differs from ${outlier.differencesCount} other proxy(ies)`);
+                    console.log(`\n📄 Diff vs ${majorityGroup[0].name}:\n`);
+
+                    const diffOutput = formatDiff(
+                        successful[majorityGroup[0].index].html,
+                        successful[outlier.index].html
+                    );
+
+                    console.log(diffOutput);
+                    console.log('\n' + '-'.repeat(60));
+                }
+
+            } else {
+                // No clear majority - show all pairwise differences
+                console.log(`\n🔀 NO CLEAR MAJORITY - Multiple different responses`);
+                console.log(`\n📄 Showing all unique differences:\n`);
+
+                const shownPairs = new Set();
+
+                for (let i = 0; i < n; i++) {
+                    for (let j = i + 1; j < n; j++) {
+                        if (!comparisonMatrix[i][j].equal) {
+                            const pairKey = `${i}-${j}`;
+                            if (!shownPairs.has(pairKey)) {
+                                shownPairs.add(pairKey);
+
+                                console.log(`\n--- ${successful[i].name} vs ${successful[j].name} ---\n`);
+
+                                const diffOutput = formatDiff(
+                                    successful[i].html,
+                                    successful[j].html
+                                );
+
+                                console.log(diffOutput);
+                                console.log('\n' + '-'.repeat(60));
+                            }
+                        }
+                    }
+                }
+            }
+
+            console.log('\n' + '='.repeat(60));
+}
+
+        /**
+         * Tests all CORS proxies sequentially with detailed logging
+         * Usage: Open browser console and run: window.testProxies('https://example.com')
+         */
+        window.testProxies = async function(testUrl) {
+            console.log('=== CORS Proxy Health Check ===');
+            console.log(`Testing with URL: ${testUrl}\n`);
+
+            const results = [];
+
+            for (let i = 0; i < corsProxies.length; i++) {
+                const proxy = corsProxies[i];
+                const startTime = performance.now();
+
+                console.log(`[${i + 1}/${corsProxies.length}] Testing: ${proxy.name}`);
+                console.log(`  Fetch URL: ${proxy.formatFetchUrl(testUrl)}`);
+
+                try {
+                    const html = await proxy.proxyFetch(testUrl);
+                    const endTime = performance.now();
+                    const duration = Math.round(endTime - startTime);
+
+                    console.log(`  ✅ SUCCESS (${duration}ms, ${html.length} bytes)`);
+                    results.push({
+                        index: i,
+                        name: proxy.name,
+                        status: 'success',
+                        duration,
+                        html,
+                    });
+                } catch (error) {
+                    const endTime = performance.now();
+                    const duration = Math.round(endTime - startTime);
+
+                    console.error(`  ❌ FAILED (${duration}ms)`);
+                    console.error(`  Error: ${error.message}`);
+                    results.push({
+                        index: i,
+                        name: proxy.name,
+                        status: 'failed',
+                        duration,
+                        error: error.message
+                    });
+                }
+
+                console.log('');
+            }
+
+            console.log('=== Summary ===');
+            const successful = results.filter(r => r.status === 'success');
+            const failed = results.filter(r => r.status === 'failed');
+
+            if (successful.length > 0) {
+                console.log('✅ Working proxies:');
+                // compare html content of successful responses
+                if (successful.length > 1) {
+                    // make sure all proxies return the same HTML for the same webpage URL
+                    await compareAndDiffWithDebugLogging(successful);
+                }
+            }
+
+            if (failed.length > 0) {
+                console.log('❌ Failed proxies:');
+                failed.forEach(console.log);
+            }
+
+            return results;
+        };
+    </script>
+</body>
+</html>
