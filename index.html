@@ -356,6 +356,7 @@
                 const fetchUrl = this.formatFetchUrl(targetUrl);
                 const response = await fetch(fetchUrl);
                 const html = await response.text();
+                console.log('response headers for', targetUrl, [...response.headers]);
                 if (!response.ok) {
                     throw new Error(`HTTP ${response.status} - ${response.statusText} - ${html.slice(0, 100)}`);
                 }
@@ -364,6 +365,7 @@
         }
 
         const corsProxies = [
+            new Proxy('No proxy (just a direct request)', ''),
             new Proxy('CORS Anywhere - Community-Hosted Instance', 'https://cors-anywhere.com/', url => url, {
                 async proxyFetch(targetUrl) {
                     const fetchUrl = this.formatFetchUrl(targetUrl);
@@ -445,9 +447,11 @@
 
             const proxy = corsProxies[proxyIndex];
             showProxyInfo(proxy.name, proxyIndex);
+            console.log('Trying proxy', proxy.name, `${proxyIndex}/${corsProxies.length}`);
 
             try {
                 const html = await proxy.proxyFetch(url);
+                console.log('✅ Success', html.substring(0, 100));
                 return html;
             } catch (error) {
                 console.warn(`Proxy ${proxy.name} failed:`, error.message);
@@ -590,6 +594,8 @@
 
         // Actual conversion logic
         async function performConversion(url) {
+            console.log('Url is', url);
+
             const convertBtn = document.getElementById('convertBtn');
             const outputSection = document.getElementById('outputSection');
             const output = document.getElementById('output');
